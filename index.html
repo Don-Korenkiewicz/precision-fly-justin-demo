@@ -124,6 +124,10 @@
   .temp-warn { color:var(--temp-warn); }
   .temp-bad  { color:var(--temp-bad); }
   .trend-arrow { font-size:11px; color:var(--muted); margin-left:3px; font-weight:400; }
+  .stream-book { font-size:11px; color:var(--muted); margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); }
+  .stream-book i { color:var(--text); font-style:italic; }
+  .stream-book-none { opacity:.7; }
+  .stream-book-none i { color:var(--muted); }
   .stream-footer-note {
     padding:10px 18px; font-size:10.5px; color:var(--muted);
     border-top:1px solid var(--border); background:var(--bg);
@@ -678,12 +682,12 @@ const FLIES = {
 
 // ── Stream Conditions Sidebar (live USGS data) ──────────────────────────────
 const STREAM_SITES = [
-  { id: "01548030",  name: "Fishing Creek",    loc: "near Lamar, PA" },
-  { id: "015765195", name: "Big Spring Run",   loc: "near Mylin Corners, PA" },
-  { id: "01547500",  name: "Bald Eagle Creek", loc: "at Blanchard, PA" },
-  { id: "01544500",  name: "Kettle Creek",     loc: "at Cross Fork, PA" },
-  { id: "01549700",  name: "Pine Creek",       loc: "near Waterville, PA" },
-  { id: "01576381",  name: "Hammer Creek",     loc: "near Schaefferstown, PA" },
+  { id: "01548030",  name: "Fishing Creek",    loc: "near Lamar, PA",           page: "218-227" },
+  { id: "015765195", name: "Big Spring Run",   loc: "near Mylin Corners, PA",   page: null },
+  { id: "01547500",  name: "Bald Eagle Creek", loc: "at Blanchard, PA",        page: "173, 181-182" },
+  { id: "01544500",  name: "Kettle Creek",     loc: "at Cross Fork, PA",       page: "117-125" },
+  { id: "01549700",  name: "Pine Creek",       loc: "near Waterville, PA",     page: "185, 188-189" },
+  { id: "01576381",  name: "Hammer Creek",     loc: "near Schaefferstown, PA", page: "123" },
 ];
 
 function cToF(c) { return (c * 9 / 5) + 32; }
@@ -747,6 +751,9 @@ async function loadStreamConditions() {
             <div class="stream-stat"><span class="stream-stat-val">${flow ? flow.latest.toFixed(1) : "—"}${flow ? trendArrow(flow.latest, flow.earliest, "flow") : ""}</span><span class="stream-stat-label">Flow (cfs)</span></div>
             <div class="stream-stat"><span class="stream-stat-val">${gauge ? gauge.latest.toFixed(2) + " ft" : "—"}${gauge ? trendArrow(gauge.latest, gauge.earliest, "gauge") : ""}</span><span class="stream-stat-label">Gauge</span></div>
           </div>
+          ${site.page
+            ? `<div class="stream-book">📖 <i>Keystone Fly Fishing</i>, p. ${site.page}</div>`
+            : `<div class="stream-book stream-book-none">Not covered in <i>Keystone Fly Fishing</i></div>`}
         </a>
       `;
     }).join("");
