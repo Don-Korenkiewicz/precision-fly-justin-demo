@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fly Recipe Builder — Precision Fly & Tackle</title>
+<style>
+  :root {
+    --bg:#f4f1ec; --white:#ffffff; --border:#ddd8cc;
+    --green-dark:#233a12; --green:#3a5c1a; --green-mid:#4f7c24;
+    --olive:#7a9a3a; --olive-light:#e8f0d8;
+    --gold:#b07020; --gold-light:#fff3dc;
+    --text:#1c1c1a; --muted:#7a7060; --red:#c04030;
+    --water:#2f6690; --water-light:#e8f2f8;
+    --temp-good:#3a7d3a; --temp-warn:#b07020; --temp-bad:#c04030;
+    --radius:10px; --card-radius:8px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;
+    color:var(--text); min-height:100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background:var(--green-dark);
+    padding:18px 32px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:3px solid var(--gold);
+  }
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .header-logo { font-size:30px; }
+  .header-title { color:#fff; }
+  .header-title h1 { font-size:20px; font-weight:800; letter-spacing:.3px; }
+  .header-title p  { font-size:12px; color:#a8c880; margin-top:2px; }
+  .header-badge {
+    background:var(--gold); color:#fff; font-size:11px; font-weight:700;
+    padding:5px 14px; border-radius:20px; white-space:nowrap;
+  }
+
+  /* ── Layout ── */
+  .layout-wrap {
+    max-width:1440px; margin:0 auto; padding:0 20px;
+    display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;
+  }
+  .page { max-width:1100px; flex:1 1 700px; padding:32px 0 60px; }
+
+  /* ── Fly selector ── */
+  .selector-card {
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px 28px; margin-bottom:28px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  .selector-card label { font-size:11px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.7px; display:block; margin-bottom:10px; }
+  .fly-grid {
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .fly-btn {
+    padding:8px 16px; border-radius:20px; border:1.5px solid var(--border);
+    background:var(--white); color:var(--text); font-size:13px; font-weight:500;
+    cursor:pointer; transition:all .15s;
+  }
+  .fly-btn:hover   { border-color:var(--olive); color:var(--green); background:var(--olive-light); }
+  .fly-btn.active  { background:var(--green); color:#fff; border-color:var(--green); }
+
+  .category-label {
+    width:100%; font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.8px; color:var(--muted); padding-top:12px; padding-bottom:2px;
+    border-top:1px solid var(--border); margin-top:4px;
+  }
+  .category-label:first-child { border-top:none; padding-top:0; margin-top:0; }
+
+  /* ── Hatch chart ── */
+  .hatch-card {
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px 28px; margin-bottom:28px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  .hatch-card label { font-size:11px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.7px; display:block; margin-bottom:10px; }
+  .hatch-month-title { font-size:16px; font-weight:800; color:var(--green); margin-bottom:12px; }
+  .hatch-grid { display:flex; flex-wrap:wrap; gap:12px; }
+  .hatch-item {
+    flex:1; min-width:200px; max-width:260px;
+    background:var(--olive-light); border:1.5px solid var(--olive);
+    border-radius:var(--card-radius); padding:14px 16px;
+  }
+  .hatch-bug  { font-size:13px; font-weight:800; color:var(--green-dark); margin-bottom:3px; }
+  .hatch-time { font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .hatch-flies { display:flex; flex-wrap:wrap; gap:6px; }
+  .hatch-fly-btn {
+    padding:5px 12px; border-radius:14px; border:1.5px solid var(--green);
+    background:var(--white); color:var(--green); font-size:12px; font-weight:600;
+    cursor:pointer; transition:all .15s;
+  }
+  .hatch-fly-btn:hover { background:var(--green); color:#fff; }
+
+  /* ── Stream Conditions Sidebar ── */
+  .stream-sidebar { flex:1 1 280px; max-width:320px; padding:32px 0 60px; }
+  .stream-panel {
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.06); position:sticky; top:16px;
+  }
+  .stream-panel-header {
+    background:var(--water-light); border-bottom:1px solid var(--border);
+    padding:14px 18px; font-size:14px; font-weight:800; color:var(--water);
+  }
+  .stream-body { padding:8px; }
+  .stream-loading, .stream-error { padding:14px 10px; font-size:13px; color:var(--muted); }
+  .stream-card {
+    display:block; padding:12px 10px; border-radius:8px; text-decoration:none; color:inherit;
+    border-bottom:1px solid var(--border); transition:background .15s;
+  }
+  .stream-card:last-child { border-bottom:none; }
+  .stream-card:hover { background:var(--water-light); }
+  .stream-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
+  .stream-loc  { display:block; font-size:11px; font-weight:500; color:var(--muted); margin-top:1px; }
+  .stream-stats { display:flex; gap:14px; margin-top:8px; }
+  .stream-stat  { display:flex; flex-direction:column; }
+  .stream-stat-val   { font-size:15px; font-weight:800; color:var(--text); }
+  .stream-stat-label { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
+  .temp-good { color:var(--temp-good); }
+  .temp-warn { color:var(--temp-warn); }
+  .temp-bad  { color:var(--temp-bad); }
+  .trend-arrow { font-size:11px; color:var(--muted); margin-left:3px; font-weight:400; }
+  .stream-footer-note {
+    padding:10px 18px; font-size:10.5px; color:var(--muted);
+    border-top:1px solid var(--border); background:var(--bg);
+  }
+  @media (max-width:860px) {
+    .stream-sidebar { flex-basis:100%; max-width:none; }
+    .stream-panel { position:static; }
+    .stream-stats { flex-wrap:wrap; row-gap:6px; }
+  }
+
+  /* ── Recipe header ── */
+  .recipe-header {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:20px; gap:16px;
+  }
+  .recipe-title h2 { font-size:22px; font-weight:800; color:var(--green-dark); }
+  .recipe-title p  { font-size:13px; color:var(--muted); margin-top:4px; }
+  .yt-btn {
+    display:inline-flex; align-items:center; gap:7px;
+    background:#ff0000; color:#fff; text-decoration:none;
+    font-size:12px; font-weight:700; padding:8px 16px; border-radius:6px;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .yt-btn:hover { opacity:.88; }
+
+  /* ── Materials ── */
+  .materials-section { display:flex; flex-direction:column; gap:14px; }
+
+  .material-row {
+    background:var(--white); border:1px solid var(--border); border-radius:var(--card-radius);
+    overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05);
+  }
+  .material-label-row {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; background:var(--olive-light); border-bottom:1px solid var(--border);
+  }
+  .material-tag {
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.7px;
+    color:var(--green); background:#fff; border:1px solid var(--olive);
+    padding:2px 10px; border-radius:12px; flex-shrink:0;
+  }
+  .material-spec { font-size:13px; color:var(--text); }
+  .material-spec b { color:var(--green-dark); }
+
+  .products-row {
+    display:flex; gap:0; overflow-x:auto;
+  }
+
+  /* ── Product card ── */
+  .product-card {
+    display:flex; flex-direction:column;
+    min-width:200px; max-width:240px; flex:1;
+    padding:14px; border-right:1px solid var(--border);
+    text-decoration:none; color:inherit; transition:background .12s;
+  }
+  .product-card:last-child { border-right:none; }
+  .product-card:hover { background:#fafaf6; }
+
+  .product-img {
+    width:64px; height:64px; object-fit:contain; border-radius:6px;
+    background:#f8f8f4; border:1px solid var(--border); margin-bottom:10px;
+  }
+  .product-name { font-size:12px; font-weight:600; color:var(--text); line-height:1.45; margin-bottom:4px; }
+  .product-vendor { font-size:10px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.4px; }
+  .product-price { font-size:14px; font-weight:800; color:var(--gold); }
+  .product-avail { font-size:10px; margin-top:3px; }
+  .avail-yes { color:#3a8a3a; }
+  .avail-no  { color:var(--red); }
+
+  .shop-btn {
+    display:inline-block; margin-top:auto; padding-top:10px;
+    font-size:11px; font-weight:700; color:var(--green); text-transform:uppercase; letter-spacing:.5px;
+  }
+
+  /* No result */
+  .no-match {
+    flex:1; display:flex; flex-direction:column; justify-content:center;
+    align-items:center; padding:20px; gap:8px; color:var(--muted); text-align:center;
+  }
+  .no-match a {
+    font-size:12px; color:var(--green); font-weight:600; text-decoration:none;
+  }
+  .no-match a:hover { text-decoration:underline; }
+
+  /* Loading skeleton */
+  .product-skeleton {
+    flex:1; min-width:200px; padding:14px; display:flex; flex-direction:column; gap:8px;
+  }
+  .skel { background:linear-gradient(90deg,#ece9e1 25%,#f5f2ea 50%,#ece9e1 75%);
+    background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:4px; }
+  .skel-img { width:64px; height:64px; border-radius:6px; }
+  .skel-line { height:11px; width:80%; }
+  .skel-line.short { width:50%; }
+  .skel-line.price { width:40%; height:14px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* Empty state */
+  .empty-state {
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+    padding:48px; text-align:center; color:var(--muted);
+  }
+  .empty-state .fish { font-size:48px; margin-bottom:12px; }
+  .empty-state h3 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:6px; }
+  .empty-state p  { font-size:13px; }
+
+  /* ── Footer ── */
+  .footer {
+    background:var(--green-dark); color:#a8c880;
+    text-align:center; padding:18px; font-size:12px; margin-top:48px;
+  }
+  .footer a { color:#d0e8a0; }
+
+  /* ── Demo badge ── */
+  .demo-banner {
+    background:var(--green-dark); border-radius:8px;
+    padding:13px 20px; margin-bottom:20px; font-size:13px; color:#a8c880;
+    display:flex; align-items:center; gap:10px;
+  }
+  .demo-banner b { color:#fff; }
+
+  /* ── How it works strip ── */
+  .how-it-works {
+    display:flex; align-items:stretch; gap:0;
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+    margin-bottom:24px; overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  .hiw-step {
+    flex:1; padding:20px 22px; position:relative;
+  }
+  .hiw-step:not(:last-child) { border-right:1px solid var(--border); }
+  .hiw-num {
+    width:24px; height:24px; border-radius:50%;
+    background:var(--green-dark); color:#fff;
+    font-size:11px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:10px;
+  }
+  .hiw-icon { font-size:22px; margin-bottom:8px; }
+  .hiw-title { font-size:14px; font-weight:700; color:var(--green-dark); margin-bottom:5px; }
+  .hiw-desc  { font-size:12px; color:var(--muted); line-height:1.55; }
+  .hiw-arrow {
+    display:flex; align-items:center; padding:0 4px;
+    color:var(--border); font-size:22px; flex-shrink:0;
+  }
+
+  /* ── Cart value ── */
+  .cart-value {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#eaf4e0; border:1px solid #b0d080; border-radius:20px;
+    padding:5px 14px; font-size:12px; font-weight:700; color:var(--green);
+    margin-top:8px;
+  }
+
+  /* ── Specialty Tools section ── */
+  .tools-section {
+    background:var(--white); border:1px solid var(--border); border-radius:var(--card-radius);
+    overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05); margin-top:24px;
+  }
+  .tools-header {
+    display:flex; align-items:baseline; gap:12px;
+    background:var(--gold-light); border-bottom:1px solid #e8d0a0;
+    padding:14px 18px;
+  }
+  .tools-title { font-size:14px; font-weight:800; color:var(--gold); }
+  .tools-sub   { font-size:11px; color:var(--muted); }
+  .tools-grid  {
+    display:flex; flex-wrap:wrap; gap:0;
+    padding:0;
+  }
+  .tool-card {
+    flex:1; min-width:200px; padding:16px 18px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .tool-card:last-child { border-right:none; }
+  .tool-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .tool-icon   { font-size:18px; }
+  .tool-name   { font-size:13px; font-weight:700; color:var(--text); }
+  .tool-desc   { font-size:12px; color:var(--muted); line-height:1.55; margin-bottom:10px; }
+  .tool-shop-btn {
+    font-size:11px; font-weight:700; color:var(--gold);
+    text-decoration:none; text-transform:uppercase; letter-spacing:.4px;
+  }
+  .tool-shop-btn:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">🎣</div>
+    <div class="header-title">
+      <h1>Fly Recipe Builder</h1>
+      <p>Pick a pattern · see what you need · shop in seconds</p>
+    </div>
+  </div>
+  <div class="header-badge">Precision Fly & Tackle</div>
+</div>
+
+<div class="layout-wrap">
+<div class="page">
+
+  <div class="demo-banner">
+    🎣 <span>Built for <b>Precision Fly & Tackle</b> — every "Shop Now" link searches your live store inventory in real time. No setup required.</span>
+  </div>
+
+  <!-- How it works -->
+  <div class="how-it-works">
+    <div class="hiw-step">
+      <div class="hiw-num">1</div>
+      <div class="hiw-icon">🪝</div>
+      <div class="hiw-title">Customer picks a fly</div>
+      <div class="hiw-desc">They choose from 19 popular patterns — dry flies, nymphs, streamers, and more</div>
+    </div>
+    <div class="hiw-arrow">›</div>
+    <div class="hiw-step">
+      <div class="hiw-num">2</div>
+      <div class="hiw-icon">📋</div>
+      <div class="hiw-title">Full recipe loads instantly</div>
+      <div class="hiw-desc">Every material they need appears — hook, thread, dubbing, hackle — with a tying video link</div>
+    </div>
+    <div class="hiw-arrow">›</div>
+    <div class="hiw-step">
+      <div class="hiw-num">3</div>
+      <div class="hiw-icon">🛒</div>
+      <div class="hiw-title">One click to shop at your store</div>
+      <div class="hiw-desc">Each material links directly to Precision Fly's live inventory — real products, real prices, right now</div>
+    </div>
+  </div>
+
+  <!-- What's Hatching Now -->
+  <div class="hatch-card">
+    <label>🪰 What's Hatching Now</label>
+    <div class="hatch-month-title" id="hatch-month-title"></div>
+    <div class="hatch-grid" id="hatch-grid"></div>
+  </div>
+
+  <!-- Fly Selector -->
+  <div class="selector-card">
+    <label>Choose a Fly Pattern</label>
+    <div class="fly-grid" id="fly-grid"></div>
+  </div>
+
+  <!-- Recipe Output -->
+  <div id="recipe-output">
+    <div class="empty-state">
+      <div class="fish">🪝</div>
+      <h3>Select a fly pattern above</h3>
+      <p>We'll show you every material you need and match it to products in stock at Precision Fly.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="stream-sidebar">
+  <div class="stream-panel">
+    <div class="stream-panel-header">🌊 PA Trout Stream Conditions</div>
+    <div class="stream-body" id="stream-body">
+      <div class="stream-loading">Loading live conditions…</div>
+    </div>
+    <div class="stream-footer-note">Live data via USGS · tap a stream for full details</div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  Concept demo for <a href="https://precisionflyandtackle.com" target="_blank">Precision Fly & Tackle</a> — Lancaster, PA's premier full-service fly shop
+</div>
+
+<script>
+// ── Fly recipe library ──────────────────────────────────────────────────────
+const FLIES = {
+  "Dry Flies": {
+    "Adams": {
+      desc: "Classic all-purpose dry fly. Size 12–18.",
+      yt: "https://www.youtube.com/results?search_query=Adams+dry+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 12–18" },
+        { label:"Thread", spec:"Grey 8/0" },
+        { label:"Tail", spec:"Mixed brown and grizzly hackle fibers" },
+        { label:"Body", spec:"Grey muskrat or Adams grey dubbing" },
+        { label:"Wing", spec:"Grizzly hen hackle tips, upright & divided" },
+        { label:"Hackle", spec:"Mixed brown and grizzly dry fly hackle" },
+      ]
+    },
+    "Parachute Adams": {
+      desc: "Parachute style — highly visible, sits low in film. Size 12–18.",
+      yt: "https://www.youtube.com/results?search_query=Parachute+Adams+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 12–18" },
+        { label:"Thread", spec:"Grey 8/0" },
+        { label:"Tail", spec:"Mixed brown and grizzly hackle fibers" },
+        { label:"Body", spec:"Adams grey Superfine dubbing" },
+        { label:"Wing Post", spec:"White calf body hair or poly yarn" },
+        { label:"Hackle", spec:"Mixed brown and grizzly, parachute style" },
+      ]
+    },
+    "Elk Hair Caddis": {
+      desc: "The most versatile caddis imitation. Size 12–18.",
+      yt: "https://www.youtube.com/results?search_query=Elk+Hair+Caddis+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 12–18" },
+        { label:"Thread", spec:"Tan 8/0" },
+        { label:"Rib", spec:"Fine gold wire" },
+        { label:"Body", spec:"Hare's ear dubbing or olive dubbing" },
+        { label:"Hackle", spec:"Brown palmered dry fly hackle" },
+        { label:"Wing", spec:"Elk hair or deer hair, tied flat over body" },
+      ]
+    },
+    "Blue Winged Olive": {
+      desc: "Essential mayfly dry — imitates Baetis. Size 16–22.",
+      yt: "https://www.youtube.com/results?search_query=Blue+Winged+Olive+dry+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 16–22" },
+        { label:"Thread", spec:"Olive 8/0 or 70-denier" },
+        { label:"Tail", spec:"Blue dun hackle fibers or Microfibbets" },
+        { label:"Abdomen", spec:"Olive Superfine dubbing" },
+        { label:"Wing", spec:"Blue dun CDC feather or poly yarn" },
+        { label:"Hackle", spec:"Blue dun dry fly hackle" },
+      ]
+    },
+    "Griffith's Gnat": {
+      desc: "Simple midge cluster pattern. Size 18–22.",
+      yt: "https://www.youtube.com/results?search_query=Griffiths+Gnat+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 18–22" },
+        { label:"Thread", spec:"Black 8/0 or 70-denier" },
+        { label:"Body", spec:"Peacock herl" },
+        { label:"Hackle", spec:"Grizzly dry fly hackle, palmered" },
+      ]
+    },
+    "Stimulator": {
+      desc: "Big attractor dry — great for pocket water. Size 8–16.",
+      yt: "https://www.youtube.com/results?search_query=Stimulator+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"2XL dry fly hook, size 8–16" },
+        { label:"Thread", spec:"Orange 6/0" },
+        { label:"Tail", spec:"Elk hair" },
+        { label:"Abdomen", spec:"Yellow or orange dubbing" },
+        { label:"Rib", spec:"Fine gold wire" },
+        { label:"Wing", spec:"Elk hair, tied forward" },
+        { label:"Hackle", spec:"Grizzly dry fly hackle at head" },
+        { label:"Thorax", spec:"Orange Antron dubbing" },
+      ]
+    },
+    "Royal Wulff": {
+      desc: "Classic attractor with high visibility. Size 10–16.",
+      yt: "https://www.youtube.com/results?search_query=Royal+Wulff+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 10–16" },
+        { label:"Thread", spec:"Black 8/0" },
+        { label:"Tail", spec:"Moose body hair or elk hair" },
+        { label:"Body", spec:"Peacock herl with red floss mid-band" },
+        { label:"Wing", spec:"White calf tail, upright & divided" },
+        { label:"Hackle", spec:"Brown dry fly hackle" },
+      ]
+    },
+    "Sulphur": {
+      desc: "One of the defining hatches on PA limestone water. Evening rises May–June are some of the most technical and rewarding dry fly fishing around. Size 16–18.",
+      yt: "https://www.youtube.com/results?search_query=Sulphur+dry+fly+tying+tutorial+Pennsylvania",
+      materials: [
+        { label:"Hook",   spec:"Standard dry fly hook, size 16–18" },
+        { label:"Thread", spec:"Yellow or tan 8/0" },
+        { label:"Tail",   spec:"Cream hackle fibers" },
+        { label:"Body",   spec:"Pale yellow or sulphur superfine dubbing" },
+        { label:"Wing",   spec:"Light dun CDC or hen hackle tips" },
+        { label:"Hackle", spec:"Cream or light ginger dry fly hackle" },
+      ]
+    },
+    "Green Drake": {
+      desc: "The most anticipated hatch in PA fly fishing. Late May on the right creek, massive green drakes pull trophy wild browns to the surface. Size 8–12.",
+      yt: "https://www.youtube.com/results?search_query=Green+Drake+dry+fly+tying+Pennsylvania+tutorial",
+      materials: [
+        { label:"Hook",   spec:"Standard dry fly hook, size 8–12" },
+        { label:"Thread", spec:"Olive 3/0 or 6/0" },
+        { label:"Tail",   spec:"Moose mane or dark brown hackle fibers, long" },
+        { label:"Body",   spec:"Olive-yellow dubbing or extended foam body" },
+        { label:"Wing",   spec:"Mottled turkey quill segments or dyed deer hair, upright" },
+        { label:"Hackle", spec:"Grizzly dyed olive, full" },
+      ]
+    },
+    "Trico": {
+      desc: "The signature late-summer hatch on PA limestone streams. Morning spinner falls (7–9am, July–August) create frenzied feeding on even the most educated trout. Size 20–26.",
+      yt: "https://www.youtube.com/results?search_query=Trico+fly+tying+tutorial+dry+fly",
+      materials: [
+        { label:"Hook",   spec:"Midge/dry fly hook, size 20–26" },
+        { label:"Thread", spec:"Black 8/0 or 70-denier" },
+        { label:"Tail",   spec:"White hackle fibers, long and forked" },
+        { label:"Body",   spec:"Black thread or black goose biot, slim" },
+        { label:"Wing",   spec:"White poly yarn or CDC, tied spent" },
+        { label:"Thorax", spec:"Black dubbing, small" },
+      ]
+    },
+  },
+  "Nymphs": {
+    "Pheasant Tail Nymph": {
+      desc: "Frank Sawyer's classic — imitates many mayfly nymphs. Size 12–18.",
+      yt: "https://www.youtube.com/results?search_query=Pheasant+Tail+Nymph+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard nymph hook, size 12–18" },
+        { label:"Thread", spec:"Brown 8/0" },
+        { label:"Tail", spec:"Pheasant tail fibers, 3–4 fibers" },
+        { label:"Rib", spec:"Fine copper wire" },
+        { label:"Abdomen", spec:"Pheasant tail fibers wound forward" },
+        { label:"Wing Case", spec:"Pheasant tail fibers folded over" },
+        { label:"Thorax", spec:"Peacock herl" },
+        { label:"Legs", spec:"Pheasant tail fibers pulled to sides" },
+      ]
+    },
+    "Hare's Ear Nymph": {
+      desc: "The most versatile nymph ever tied. Size 12–18.",
+      yt: "https://www.youtube.com/results?search_query=Hares+Ear+Nymph+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard nymph hook, size 12–18" },
+        { label:"Thread", spec:"Brown or tan 8/0" },
+        { label:"Tail", spec:"Hare's mask guard hairs" },
+        { label:"Rib", spec:"Oval gold tinsel" },
+        { label:"Abdomen", spec:"Hare's ear dubbing" },
+        { label:"Wing Case", spec:"Turkey quill or pheasant tail fibers" },
+        { label:"Thorax", spec:"Hare's ear dubbing, picked out" },
+      ]
+    },
+    "Copper John": {
+      desc: "John Barr's fast-sinking nymph. Size 12–18.",
+      yt: "https://www.youtube.com/results?search_query=Copper+John+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard nymph hook, size 12–18" },
+        { label:"Bead", spec:"Gold tungsten bead" },
+        { label:"Thread", spec:"Black 8/0" },
+        { label:"Tail", spec:"Brown goose biots, forked" },
+        { label:"Abdomen", spec:"Copper wire, medium or small" },
+        { label:"Wing Case", spec:"Black Thin Skin with epoxy" },
+        { label:"Thorax", spec:"Peacock herl" },
+        { label:"Legs", spec:"Partridge or hen back fibers" },
+      ]
+    },
+    "Zebra Midge": {
+      desc: "Simple, deadly midge larva. Size 18–22.",
+      yt: "https://www.youtube.com/results?search_query=Zebra+Midge+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Midge hook (TMC 2488 or Mustad C49S), size 18–22" },
+        { label:"Bead", spec:"Silver tungsten bead, 7/64\"" },
+        { label:"Thread", spec:"Black 70-denier (forms the body)" },
+        { label:"Rib", spec:"Small silver wire" },
+        { label:"Thorax", spec:"Black dubbing, small ball" },
+      ]
+    },
+    "San Juan Worm": {
+      desc: "Ridiculously effective. Never tell anyone you used it. Size 10–14.",
+      yt: "https://www.youtube.com/results?search_query=San+Juan+Worm+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Scud or curved hook, size 10–14" },
+        { label:"Thread", spec:"Red or pink 140-denier" },
+        { label:"Body", spec:"Red or pink Ultra Chenille, extended" },
+      ]
+    },
+    "Prince Nymph": {
+      desc: "Attractor nymph with great movement. Size 10–16.",
+      yt: "https://www.youtube.com/results?search_query=Prince+Nymph+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard nymph hook, size 10–16" },
+        { label:"Thread", spec:"Black 8/0" },
+        { label:"Tail", spec:"Brown goose biots, forked" },
+        { label:"Rib", spec:"Flat gold tinsel" },
+        { label:"Body", spec:"Peacock herl" },
+        { label:"Wing", spec:"White goose biots, crossed over body" },
+        { label:"Hackle", spec:"Brown hen hackle, collar style" },
+      ]
+    },
+  },
+  "Streamers": {
+    "Woolly Bugger": {
+      desc: "The most productive streamer ever. Tie it in black, olive, and white. Size 4–10.",
+      yt: "https://www.youtube.com/results?search_query=Woolly+Bugger+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"3XL streamer hook, size 4–10" },
+        { label:"Thread", spec:"Black 3/0 or 6/0" },
+        { label:"Tail", spec:"Black marabou, full" },
+        { label:"Rib", spec:"Fine copper wire" },
+        { label:"Body", spec:"Black chenille" },
+        { label:"Hackle", spec:"Black saddle hackle, palmered over body" },
+      ]
+    },
+    "Clouser Minnow": {
+      desc: "Bob Clouser's legendary minnow pattern. Size 2–8.",
+      yt: "https://www.youtube.com/results?search_query=Clouser+Minnow+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard streamer hook, size 2–8" },
+        { label:"Thread", spec:"White 3/0 or 6/0" },
+        { label:"Eyes", spec:"Lead or tungsten barbell eyes" },
+        { label:"Belly", spec:"White bucktail or craft fur" },
+        { label:"Wing", spec:"Chartreuse or olive bucktail with Krystal Flash" },
+      ]
+    },
+    "Kelly Galloup Stacked Blonde": {
+      desc: "Kelly Galloup's big-fish streamer built with layered bucktail for a pulsing baitfish profile. Size 1/0–4.",
+      yt: "https://www.youtube.com/results?search_query=Kelly+Galloup+Stacked+Blonde+streamer+tying",
+      materials: [
+        { label:"Hook", spec:"4XL streamer hook, size 1/0–4" },
+        { label:"Thread", spec:"White 3/0" },
+        { label:"Tail", spec:"White bucktail, long and full" },
+        { label:"Flash", spec:"Pearl Flashabou, mixed throughout layers" },
+        { label:"Body", spec:"White bucktail, stacked in 3–4 progressive clumps" },
+        { label:"Collar", spec:"White craft fur or EP Fiber, brushed out" },
+        { label:"Eyes", spec:"Adhesive 3D eyes, large" },
+      ]
+    },
+    "Blane Chocklett Chocolate Game Changer": {
+      desc: "Blane Chocklett's articulated Game Changer in chocolate — a multi-jointed streamer that swims like a real baitfish. Size 2/0–2.",
+      yt: "https://www.youtube.com/results?search_query=Blane+Chocklett+Game+Changer+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Trailer hook, size 2/0–2" },
+        { label:"Shanks", spec:"Articulated shanks, 25mm and 35mm, 3–4 sections" },
+        { label:"Thread", spec:"Brown 3/0" },
+        { label:"Body", spec:"Chocklett's Body Fiber or Game Changer chenille, chocolate/brown" },
+        { label:"Flash", spec:"Copper or brown Flashabou, sparse between sections" },
+        { label:"Head", spec:"Brown EP Fiber or craft fur, brushed and trimmed to shape" },
+        { label:"Eyes", spec:"Adhesive 3D eyes, large" },
+      ]
+    },
+  },
+  "Terrestrials": {
+    "Dave's Hopper": {
+      desc: "Summer staple for trout rising to grasshoppers. Size 8–14.",
+      yt: "https://www.youtube.com/results?search_query=Daves+Hopper+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"2XL dry fly hook, size 8–14" },
+        { label:"Thread", spec:"Yellow 6/0" },
+        { label:"Body", spec:"Yellow poly yarn or foam, extended" },
+        { label:"Rib", spec:"Brown hackle, palmered" },
+        { label:"Wing", spec:"Mottled turkey quill, flat over body" },
+        { label:"Legs", spec:"Knotted pheasant tail fibers" },
+        { label:"Hackle", spec:"Brown and grizzly mixed, collar" },
+      ]
+    },
+    "Black Ant": {
+      desc: "Essential summer terrestrial. Size 14–18.",
+      yt: "https://www.youtube.com/results?search_query=Black+Ant+dry+fly+tying+tutorial",
+      materials: [
+        { label:"Hook", spec:"Standard dry fly hook, size 14–18" },
+        { label:"Thread", spec:"Black 8/0" },
+        { label:"Abdomen", spec:"Black dubbing, rounded ball" },
+        { label:"Hackle", spec:"Black dry fly hackle, sparse" },
+        { label:"Thorax", spec:"Black dubbing, smaller ball" },
+        { label:"Wing", spec:"Clear Antron or CDC, optional" },
+      ]
+    },
+  }
+};
+
+// ── Stream Conditions Sidebar (live USGS data) ──────────────────────────────
+const STREAM_SITES = [
+  { id: "01548030",  name: "Fishing Creek",    loc: "near Lamar, PA" },
+  { id: "015765195", name: "Big Spring Run",   loc: "near Mylin Corners, PA" },
+  { id: "01547500",  name: "Bald Eagle Creek", loc: "at Blanchard, PA" },
+  { id: "01544500",  name: "Kettle Creek",     loc: "at Cross Fork, PA" },
+  { id: "01549700",  name: "Pine Creek",       loc: "near Waterville, PA" },
+  { id: "01576381",  name: "Hammer Creek",     loc: "near Schaefferstown, PA" },
+];
+
+function cToF(c) { return (c * 9 / 5) + 32; }
+
+function tempClass(f) {
+  if (f == null) return "";
+  if (f < 65) return "temp-good";
+  if (f <= 70) return "temp-warn";
+  return "temp-bad";
+}
+
+// Neutral rising/falling/flat arrow based on earliest vs. latest reading in the window.
+function trendArrow(latest, earliest, kind) {
+  if (latest == null || earliest == null) return "";
+  const delta = latest - earliest;
+  if (kind === "temp") {
+    if (Math.abs(delta) < 0.5) return "";
+  } else {
+    const pctChange = Math.abs(delta) / Math.max(Math.abs(earliest), 0.01) * 100;
+    if (pctChange < 3) return "";
+  }
+  return delta > 0 ? `<span class="trend-arrow">▲</span>` : `<span class="trend-arrow">▼</span>`;
+}
+
+async function loadStreamConditions() {
+  const body = document.getElementById("stream-body");
+  const siteIds = STREAM_SITES.map(s => s.id).join(",");
+  const url = `https://waterservices.usgs.gov/nwis/iv/?sites=${siteIds}&parameterCd=00010,00060,00065&period=PT3H&format=json`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`USGS API error ${res.status}`);
+    const data = await res.json();
+    const series = data.value?.timeSeries || [];
+
+    const bySite = {};
+    for (const s of series) {
+      const siteNo = s.sourceInfo.siteCode[0].value;
+      const paramCd = s.variable.variableCode[0].value;
+      const values = s.values[0].value;
+      if (!values.length) continue;
+      const earliest = parseFloat(values[0].value);
+      const latest   = parseFloat(values[values.length - 1].value);
+      bySite[siteNo] = bySite[siteNo] || {};
+      bySite[siteNo][paramCd] = { latest, earliest };
+    }
+
+    body.innerHTML = STREAM_SITES.map(site => {
+      const r = bySite[site.id] || {};
+      const tempC  = r["00010"];
+      const flow   = r["00060"];
+      const gauge  = r["00065"];
+      const tempF       = tempC ? cToF(tempC.latest) : null;
+      const tempFEarly  = tempC ? cToF(tempC.earliest) : null;
+      const tCls  = tempClass(tempF);
+      return `
+        <a class="stream-card" href="https://waterdata.usgs.gov/monitoring-location/USGS-${site.id}/" target="_blank" rel="noopener">
+          <div class="stream-name">${site.name}<span class="stream-loc">${site.loc}</span></div>
+          <div class="stream-stats">
+            <div class="stream-stat"><span class="stream-stat-val ${tCls}">${tempF != null ? tempF.toFixed(1) + "°F" : "—"}${trendArrow(tempF, tempFEarly, "temp")}</span><span class="stream-stat-label">Temp</span></div>
+            <div class="stream-stat"><span class="stream-stat-val">${flow ? flow.latest.toFixed(1) : "—"}${flow ? trendArrow(flow.latest, flow.earliest, "flow") : ""}</span><span class="stream-stat-label">Flow (cfs)</span></div>
+            <div class="stream-stat"><span class="stream-stat-val">${gauge ? gauge.latest.toFixed(2) + " ft" : "—"}${gauge ? trendArrow(gauge.latest, gauge.earliest, "gauge") : ""}</span><span class="stream-stat-label">Gauge</span></div>
+          </div>
+        </a>
+      `;
+    }).join("");
+  } catch (e) {
+    body.innerHTML = `<div class="stream-error">Couldn't load stream data right now — try refreshing.</div>`;
+  }
+}
+
+// ── What's Hatching Now (seasonal hatch chart) ──────────────────────────────
+const HATCHES = {
+  1:  [
+    { bug:'Midges',                time:'Midday warmth',              flies:['Zebra Midge',"Griffith's Gnat"] },
+    { bug:'Little Black Stonefly', time:'Late morning',               flies:['Adams'] },
+  ],
+  2:  [
+    { bug:'Midges',                time:'Midday',                     flies:['Zebra Midge',"Griffith's Gnat"] },
+    { bug:'Blue Winged Olive',     time:'Afternoon, overcast',        flies:['Blue Winged Olive','Pheasant Tail Nymph'] },
+  ],
+  3:  [
+    { bug:'Blue Winged Olive',     time:'Afternoon, overcast days',   flies:['Blue Winged Olive','Pheasant Tail Nymph','Adams'] },
+    { bug:'Early Black Caddis',    time:'Afternoon',                  flies:['Elk Hair Caddis',"Hare's Ear Nymph"] },
+    { bug:'Midges',                time:'Midday',                     flies:['Zebra Midge',"Griffith's Gnat"] },
+  ],
+  4:  [
+    { bug:'Hendrickson',           time:'Early afternoon, 50°F+',     flies:['Adams','Blue Winged Olive'] },
+    { bug:'Blue Winged Olive',     time:'Overcast afternoons',        flies:['Blue Winged Olive','Pheasant Tail Nymph'] },
+    { bug:'Quill Gordon',          time:'Midday, 50°F+',              flies:['Adams','Elk Hair Caddis'] },
+  ],
+  5:  [
+    { bug:'Sulphur — The PA Hatch',time:'Evening 7–9pm',              flies:['Sulphur','Adams'] },
+    { bug:'Green Drake',           time:'Dusk, limestone creeks',     flies:['Green Drake','Adams'] },
+    { bug:'March Brown',           time:'Afternoon',                  flies:['Adams','Elk Hair Caddis'] },
+    { bug:'Caddis',                time:'Evening',                    flies:['Elk Hair Caddis','Copper John'] },
+  ],
+  6:  [
+    { bug:'Sulphur (continuing)',  time:'Evening',                    flies:['Sulphur','Adams'] },
+    { bug:'Green Drake',           time:'Dusk — peak late May/June',  flies:['Green Drake','Adams'] },
+    { bug:'Yellow Sally Stonefly', time:'Afternoon',                  flies:['Elk Hair Caddis'] },
+    { bug:'Trico (start)',         time:'Early morning 6–9am',        flies:["Griffith's Gnat",'Trico'] },
+  ],
+  7:  [
+    { bug:'Trico',                 time:'Early morning 6–9am',        flies:['Trico',"Griffith's Gnat"] },
+    { bug:'Terrestrials (Ants)',   time:'All day, near banks',        flies:['Black Ant'] },
+    { bug:'Terrestrials (Hoppers)',time:'Midday, sunny banks',        flies:["Dave's Hopper"] },
+  ],
+  8:  [
+    { bug:'Trico (peak)',          time:'Early morning 7–9am',        flies:['Trico',"Griffith's Gnat"] },
+    { bug:'Grasshoppers',          time:'Midday, windy days',         flies:["Dave's Hopper"] },
+    { bug:'Flying Ants',           time:'Any time — blanket hatches', flies:['Black Ant'] },
+  ],
+  9:  [
+    { bug:'Blue Winged Olive (fall)',time:'Afternoon, overcast',      flies:['Blue Winged Olive','Pheasant Tail Nymph'] },
+    { bug:'Terrestrials',          time:'Warm afternoons',            flies:["Dave's Hopper",'Black Ant'] },
+  ],
+  10: [
+    { bug:'Blue Winged Olive (peak)',time:'Afternoon, overcast',      flies:['Blue Winged Olive','Pheasant Tail Nymph','Adams'] },
+    { bug:'Midges (start)',        time:'Midday',                     flies:['Zebra Midge',"Griffith's Gnat"] },
+  ],
+  11: [
+    { bug:'Blue Winged Olive',     time:'Midday sunny breaks',        flies:['Blue Winged Olive','Pheasant Tail Nymph'] },
+    { bug:'Midges',                time:'Warmest part of day',        flies:['Zebra Midge',"Griffith's Gnat"] },
+  ],
+  12: [
+    { bug:'Midges',                time:'Midday warmth',              flies:['Zebra Midge',"Griffith's Gnat"] },
+    { bug:'Blue Winged Olive',     time:'Rare warm afternoons',       flies:['Blue Winged Olive','Adams'] },
+  ],
+};
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function buildHatchChart() {
+  const month = new Date().getMonth() + 1;
+  const hatches = HATCHES[month] || [];
+  document.getElementById('hatch-month-title').textContent = MONTH_NAMES[month - 1];
+  const grid = document.getElementById('hatch-grid');
+  grid.innerHTML = '';
+  hatches.forEach(h => {
+    const item = document.createElement('div');
+    item.className = 'hatch-item';
+    const btns = h.flies.map(f =>
+      `<button class="hatch-fly-btn" onclick="loadFlyFromHatch('${f.replace(/'/g, "\\'")}')">${f}</button>`
+    ).join('');
+    item.innerHTML = `<div class="hatch-bug">${h.bug}</div><div class="hatch-time">⏰ ${h.time}</div><div class="hatch-flies">${btns}</div>`;
+    grid.appendChild(item);
+  });
+}
+
+function loadFlyFromHatch(name) {
+  const btns = document.querySelectorAll('.fly-btn');
+  for (const b of btns) {
+    if (b.dataset.fly === name) { b.click(); b.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  }
+}
+
+// ── Search term extraction ──────────────────────────────────────────────────
+// Terms tuned against Precision Fly's actual Shopify catalog.
+function extractSearchTerm(label, spec) {
+  const l = label.toLowerCase().trim();
+  const s = spec.toLowerCase();
+
+  // Hooks — type matters, color/size don't help
+  if (l === 'hook') {
+    if (s.includes('streamer') || s.includes('3xl') || s.includes('4xl')) return 'streamer hook';
+    if (s.includes('scud') || s.includes('curved'))  return 'scud hook';
+    if (s.includes('midge'))                          return 'midge hook';
+    if (s.includes('nymph'))                          return 'nymph hook';
+    return 'dry fly hook';
+  }
+
+  // Beads — material + color works
+  if (l === 'bead') {
+    const color = s.match(/\b(gold|silver|copper|black|red)\b/)?.[0] || '';
+    const mat   = s.includes('tungsten') ? 'tungsten bead' : 'brass bead';
+    return color ? `${color} ${mat}` : mat;
+  }
+
+  // Thread — search by color, normalized to American spelling
+  if (l === 'thread') {
+    const colors = ['black','white','olive','brown','tan','orange','yellow','red','pink','purple','chartreuse'];
+    let color = colors.find(c => s.includes(c));
+    if (!color && (s.includes('grey') || s.includes('gray'))) color = 'gray';
+    if (s.includes('140-denier') || s.includes('140 denier')) return color ? `${color} thread` : 'thread';
+    if (s.includes('70-denier')  || s.includes('70 denier'))  return color ? `${color} thread` : 'thread';
+    return color ? `${color} thread` : 'thread';
+  }
+
+  // Rib / ribbing
+  if (l === 'rib' || l === 'ribbing') {
+    if (s.includes('copper')) return 'copper wire';
+    if (s.includes('silver') && s.includes('wire')) return 'wire';
+    if (s.includes('gold') && s.includes('tinsel')) return 'gold tinsel';
+    if (s.includes('wire'))   return 'wire';
+    if (s.includes('tinsel')) return 'gold tinsel';
+    if (s.includes('floss'))  return 'floss';
+    return 'wire';
+  }
+
+  // Body / abdomen / thorax — material-specific
+  if (['body','abdomen','thorax','dubbing'].includes(l)) {
+    if (s.includes('peacock'))             return 'peacock herl';
+    if (s.includes('chenille'))            return s.includes('ultra') ? 'ultra chenille' : 'chenille';
+    if (s.includes('floss'))               return 'floss';
+    if (s.includes('foam'))                return 'foam';
+    if (s.includes('antron'))              return 'antron dubbing';
+    if (s.includes('hare') || s.includes("hare's")) return 'hares ear dubbing';
+    if (s.includes('superfine'))           return 'superfine dubbing';
+    if (s.includes('dubbing'))             return 'dubbing';
+    if (s.includes('thread'))              return 'thread';
+    return 'dubbing';
+  }
+
+  // Tail — specific material names work well
+  if (l === 'tail') {
+    if (s.includes('pheasant'))            return 'pheasant tail';
+    if (s.includes('marabou'))             return 'marabou';
+    if (s.includes('elk'))                 return 'elk hair';
+    if (s.includes('moose'))               return 'moose body hair';
+    if (s.includes('fibbet') || s.includes('micro')) return 'microfibbets';
+    if (s.includes('biot'))                return 'goose biot';
+    if (s.includes('calf'))                return 'calf body';
+    if (s.includes('deer'))                return 'deer hair';
+    if (s.includes('marabou'))             return 'marabou';
+    if (s.includes('hackle'))              return 'saddle hackle';
+    return 'saddle hackle';
+  }
+
+  // Hackle — tuned to Precision Fly catalog
+  if (l === 'hackle') {
+    if (s.includes('cdc'))                 return 'cdc';
+    if (s.includes('partridge'))           return 'partridge';
+    if (s.includes('hen'))                 return 'hen hackle';
+    if (s.includes('saddle'))              return 'saddle hackle';
+    if (s.includes('grizzly'))             return 'saddle hackle';
+    if (s.includes('parachute') || s.includes('mixed') || s.includes('dry')) return 'saddle hackle';
+    return 'saddle hackle';
+  }
+
+  // Wing / wing case / post
+  if (l === 'wing' || l === 'wing case' || l === 'wingcase' || l === 'wing post' || l === 'post') {
+    if (s.includes('elk'))                 return 'elk hair';
+    if (s.includes('cdc'))                 return 'cdc';
+    if (s.includes('deer'))                return 'deer hair';
+    if (s.includes('turkey'))              return 'turkey quill';
+    if (s.includes('pheasant'))            return 'pheasant tail';
+    if (s.includes('bucktail'))            return 'bucktail';
+    if (s.includes('goose'))               return 'goose biot';
+    if (s.includes('calf'))                return 'calf body';
+    if (s.includes('antron'))              return 'antron yarn';
+    if (s.includes('poly'))                return 'poly yarn';
+    if (s.includes('foam'))                return 'foam';
+    if (s.includes('hen'))                 return 'hen hackle';
+    if (s.includes('grizzly'))             return 'saddle hackle';
+    if (s.includes('hackle'))              return 'saddle hackle';
+    if (s.includes('mylar') || s.includes('tinsel')) return 'mylar tinsel';
+    return 'dubbing';
+  }
+
+  // Legs / eyes
+  if (l === 'legs') {
+    if (s.includes('rubber'))             return 'rubber legs';
+    if (s.includes('pheasant'))           return 'pheasant tail';
+    return 'partridge';
+  }
+  if (l === 'eyes') {
+    if (s.includes('bead chain')) return 'bead chain eyes';
+    if (s.includes('lead') || s.includes('tungsten') || s.includes('barbell')) return 'barbell eyes';
+    if (s.includes('3d') || s.includes('adhesive') || s.includes('dome') || s.includes('holographic')) return 'eyes';
+    return 'eyes';
+  }
+  if (l === 'flash') return 'krystal flash';
+
+  // Fallback: first 3 words of spec, no parenthetical notes
+  const clean = spec.replace(/\(.*?\)/g,'').replace(/,.*$/,'').trim()
+                    .split(/\s+/).slice(0,3).join(' ');
+  return clean || label;
+}
+
+// ── Shopify search ──────────────────────────────────────────────────────────
+const BASE  = 'https://precisionflyandtackle.com';
+const cache = {};
+
+async function searchProducts(query) {
+  if (cache[query]) return cache[query];
+  // /shopify-search is proxied to Shopify via Netlify _redirects (no CORS issue)
+  const url = `/shopify-search?q=${encodeURIComponent(query)}&resources%5Btype%5D=product&resources%5Blimit%5D=3`;
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    // Filter out pre-tied flies (tagged "discount-flies" or "discount-dry_flies")
+    const all = data?.resources?.results?.products || [];
+    const results = all.filter(p =>
+      !(p.tags || []).some(t => t.toLowerCase().includes('discount-') || t.toLowerCase().includes('flies-product'))
+    );
+    cache[query] = results;
+    return results;
+  } catch(e) {
+    cache[query] = [];
+    return [];
+  }
+}
+
+// ── Rendering ───────────────────────────────────────────────────────────────
+function renderSkeleton() {
+  return `<div class="product-skeleton">
+    <div class="skel skel-img"></div>
+    <div class="skel skel-line"></div>
+    <div class="skel skel-line short"></div>
+    <div class="skel skel-line price"></div>
+  </div>`.repeat(2);
+}
+
+function renderProduct(p) {
+  const img     = p.featured_image?.url || p.image || '';
+  const price   = p.price_min !== p.price_max
+    ? `$${parseFloat(p.price_min).toFixed(2)} – $${parseFloat(p.price_max).toFixed(2)}`
+    : `$${parseFloat(p.price).toFixed(2)}`;
+  const avail   = p.available;
+  const prodUrl = BASE + (p.url || `/products/${p.handle}`);
+
+  return `<a class="product-card" href="${prodUrl}" target="_blank">
+    ${img ? `<img class="product-img" src="${img}" alt="${p.title}" loading="lazy">` : '<div class="product-img"></div>'}
+    <div class="product-vendor">${p.vendor || ''}</div>
+    <div class="product-name">${p.title}</div>
+    <div class="product-price">${price}</div>
+    <div class="product-avail ${avail ? 'avail-yes' : 'avail-no'}">${avail ? '✓ In Stock' : '✗ Out of Stock'}</div>
+    <div class="shop-btn">Shop Now →</div>
+  </a>`;
+}
+
+function renderNoMatch(query) {
+  const searchUrl = `${BASE}/search?q=${encodeURIComponent(query)}&type=product`;
+  return `<div class="no-match">
+    <div>🔍</div>
+    <div style="font-size:13px">No exact match found</div>
+    <a href="${searchUrl}" target="_blank">Search "${query}" →</a>
+  </div>`;
+}
+
+async function loadMaterialProducts(rowEl, label, spec) {
+  const query    = extractSearchTerm(label, spec);
+  const products = await searchProducts(query);
+  const pr = rowEl.querySelector('.products-row');
+  if (products.length === 0) {
+    pr.innerHTML = renderNoMatch(query);
+  } else {
+    pr.innerHTML = products.map(renderProduct).join('');
+  }
+}
+
+// ── Fly selector & recipe display ────────────────────────────────────────────
+let activeBtn = null;
+
+// ── Specialty tools ──────────────────────────────────────────────────────────
+const SPECIALTY_TOOLS = [
+  {
+    name: "Hackle Pliers",
+    desc: "Grips the tip of a hackle feather so you can palmer it evenly without losing the stem.",
+    search: "hackle pliers",
+    icon: "🔧",
+    trigger: mats => mats.some(m => m.label.toLowerCase() === 'hackle' || m.spec.toLowerCase().includes('palmered'))
+  },
+  {
+    name: "Hair Stacker",
+    desc: "Aligns natural hair tips (elk, deer, calf) so wings and tails come out even every time.",
+    search: "hair stacker",
+    icon: "⚙️",
+    trigger: mats => mats.some(m => {
+      const s = (m.spec + ' ' + m.label).toLowerCase();
+      return s.includes('elk') || s.includes('deer') || s.includes('calf') || s.includes('moose') || s.includes('bucktail');
+    })
+  },
+  {
+    name: "UV Resin + Lamp",
+    desc: "Seals and hardens wing cases, heads, and coatings in seconds — much faster than epoxy.",
+    search: "uv resin",
+    icon: "💡",
+    trigger: mats => mats.some(m => {
+      const s = (m.spec + ' ' + m.label).toLowerCase();
+      return s.includes('epoxy') || s.includes('uv') || s.includes('thin skin');
+    })
+  },
+  {
+    name: "Dubbing Loop Tool",
+    desc: "Spins a loop of thread to trap dubbing for a shaggy, buggy thorax — essential for Hare's Ear style flies.",
+    search: "dubbing loop",
+    icon: "🔄",
+    trigger: mats => mats.some(m => {
+      const s = (m.spec + ' ' + m.label).toLowerCase();
+      return s.includes('picked out') || s.includes("hare's ear") || s.includes('hares ear');
+    })
+  },
+  {
+    name: "Bead Tweezers",
+    desc: "Places tiny tungsten or brass beads onto hooks without losing them across the bench.",
+    search: "bead tweezers",
+    icon: "🔬",
+    trigger: mats => mats.some(m => m.label.toLowerCase() === 'bead')
+  },
+  {
+    name: "Foam Cutter",
+    desc: "Punches or cuts foam body segments to uniform size — makes hopper and ant bodies clean and consistent.",
+    search: "foam cutter",
+    icon: "✂️",
+    trigger: mats => mats.some(m => (m.spec + ' ' + m.label).toLowerCase().includes('foam'))
+  },
+];
+
+function inferSpecialtyTools(materials) {
+  return SPECIALTY_TOOLS.filter(t => t.trigger(materials));
+}
+
+function buildSelector() {
+  const grid = document.getElementById('fly-grid');
+  for (const [cat, flies] of Object.entries(FLIES)) {
+    const catEl = document.createElement('span');
+    catEl.className = 'category-label';
+    catEl.textContent = cat;
+    grid.appendChild(catEl);
+    for (const flyName of Object.keys(flies)) {
+      const btn = document.createElement('button');
+      btn.className = 'fly-btn';
+      btn.textContent = flyName;
+      btn.dataset.fly = flyName;
+      btn.onclick = () => showFly(flyName, btn);
+      grid.appendChild(btn);
+    }
+  }
+}
+
+function showFly(name, btn) {
+  if (activeBtn) activeBtn.classList.remove('active');
+  activeBtn = btn;
+  btn.classList.add('active');
+
+  // Find recipe
+  let recipe = null;
+  for (const flies of Object.values(FLIES)) {
+    if (flies[name]) { recipe = flies[name]; break; }
+  }
+  if (!recipe) return;
+
+  const ytUrl = recipe.yt;
+
+  const rows = recipe.materials.map(m => `
+    <div class="material-row">
+      <div class="material-label-row">
+        <span class="material-tag">${m.label}</span>
+        <span class="material-spec"><b>${m.label}:</b> ${m.spec}</span>
+      </div>
+      <div class="products-row">${renderSkeleton()}</div>
+    </div>
+  `).join('');
+
+  // Estimate cart value based on material types
+  const priceMap = {
+    hook:8, thread:4, bead:6, tail:6, body:6, abdomen:6, thorax:5,
+    hackle:8, rib:4, ribbing:4, wing:7, 'wing case':5, flash:4,
+    dubbing:5, collar:6, legs:4, eyes:6, head:5, shank:7, shanks:7,
+    belly:5, overwing:5, back:5, 'body (rear)':6, 'body (front)':6,
+    'front hook':8, 'rear hook':8, connection:3
+  };
+  const matCount = recipe.materials.length;
+  let estLow = 0, estHigh = 0;
+  recipe.materials.forEach(m => {
+    const price = priceMap[m.label.toLowerCase()] || 5;
+    estLow  += Math.round(price * 0.85);
+    estHigh += Math.round(price * 1.3);
+  });
+
+  // Specialty tools for this pattern
+  const tools = inferSpecialtyTools(recipe.materials);
+  let toolsSection = '';
+  if (tools.length > 0) {
+    const toolCards = tools.map(t => `
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">${t.icon}</span>
+          <span class="tool-name">${t.name}</span>
+        </div>
+        <p class="tool-desc">${t.desc}</p>
+        <a class="tool-shop-btn" href="${BASE}/search?q=${encodeURIComponent(t.search)}&type=product" target="_blank">Shop ${t.name} →</a>
+      </div>
+    `).join('');
+    toolsSection = `
+      <div class="tools-section">
+        <div class="tools-header">
+          <span class="tools-title">🛠️ Specialty Tools for This Pattern</span>
+          <span class="tools-sub">Pattern-specific tools — beyond the basics you already own</span>
+        </div>
+        <div class="tools-grid">${toolCards}</div>
+      </div>
+    `;
+  }
+
+  document.getElementById('recipe-output').innerHTML = `
+    <div class="recipe-header">
+      <div class="recipe-title">
+        <h2>🪝 ${name}</h2>
+        <p>${recipe.desc}</p>
+        <div class="cart-value">🛒 Est. cart value: $${estLow}–$${estHigh} · ${matCount} materials</div>
+      </div>
+      <a class="yt-btn" href="${ytUrl}" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+        Watch Tutorial
+      </a>
+    </div>
+    <div class="materials-section">${rows}</div>
+    ${toolsSection}
+  `;
+
+  // Load products for each row asynchronously
+  const rowEls = document.querySelectorAll('.material-row');
+  recipe.materials.forEach((m, i) => {
+    loadMaterialProducts(rowEls[i], m.label, m.spec);
+  });
+}
+
+// ── Init ────────────────────────────────────────────────────────────────────
+buildSelector();
+buildHatchChart();
+loadStreamConditions();
+// Auto-load Elk Hair Caddis so Justin sees a full recipe immediately
+setTimeout(() => {
+  const defaultBtn = document.querySelector('.fly-btn[data-fly="Elk Hair Caddis"]');
+  if (defaultBtn) defaultBtn.click();
+}, 0);
+</script>
+</body>
+</html>
